@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: TaskFoundry API
+  version: 1.0.0
+  description: REST API with JWT authentication, RBAC, and task CRUD.
+servers:
+  - url: http://localhost:5001
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: API healthy
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  example: Test User
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: StrongPass1
+                role:
+                  type: string
+                  enum: [user, admin]
+                adminInviteCode:
+                  type: string
+                  example: ADMIN-ACCESS-CODE
+      responses:
+        '201':
+          description: Registered
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: StrongPass1
+      responses:
+        '200':
+          description: Login successful
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+  /api/v1/tasks:
+    get:
+      tags: [Tasks]
+      summary: List tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, in_progress, done]
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: owner
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task list with pagination
+    post:
+      tags: [Tasks]
+      summary: Create task
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                  example: Prepare launch notes
+                description:
+                  type: string
+                  example: Draft the API release checklist
+                status:
+                  type: string
+                  enum: [pending, in_progress, done]
+                dueDate:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Task created
+  /api/v1/tasks/admin/stats:
+    get:
+      tags: [Tasks]
+      summary: Admin only task statistics
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Task stats by status
+  /api/v1/tasks/{id}:
+    get:
+      tags: [Tasks]
+      summary: Get task by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task returned
+    put:
+      tags: [Tasks]
+      summary: Update task by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [pending, in_progress, done]
+                dueDate:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Task updated
+    delete:
+      tags: [Tasks]
+      summary: Delete task by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task deleted
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
