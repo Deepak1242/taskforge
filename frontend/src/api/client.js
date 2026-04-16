@@ -1,6 +1,7 @@
 import { clearToken, getToken } from "../utils/storage";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api/v1";
+const DEFAULT_API_BASE = "https://taskforge-2jp5-onl7zev13-demoncommander12-1854s-projects.vercel.app/api/v1";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
 
 export const request = async (path, options = {}) => {
   const token = getToken();
